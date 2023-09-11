@@ -148,6 +148,10 @@ public class InteractiveProcess {
         return resultSequence.get(resultSequenceIndex);
     }
 
+    public List<Set<Entity>> getResultSequence() {
+        return resultSequence;
+    }
+
     public void setManagerId(int managerId) {
         this.managerId = managerId;
     }
@@ -155,5 +159,14 @@ public class InteractiveProcess {
     @Override
     public String toString() {
         return contextSequence.toString();
+    }
+
+    @Override
+    public int hashCode() {
+        int result = 17;
+
+        result = result * 37 + contextSequence.hashCode();
+
+        return result;
     }
 }
