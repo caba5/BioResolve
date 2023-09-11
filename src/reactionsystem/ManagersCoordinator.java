@@ -1,7 +1,6 @@
 package reactionsystem;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class ManagersCoordinator {
     private static ReactionSystem rs = null;
@@ -12,20 +11,12 @@ public class ManagersCoordinator {
 
     private int managerId;
 
+    private Set<Integer> cachedManagers;
+
     private ManagersCoordinator() {
         this.managers = new ArrayList<>();
         this.managerId = 0;
-    }
-
-    private ProcessManager spawnManager() {
-        ProcessManager newManager = new ProcessManager(managerId, rs, null);
-
-        managers.add(newManager);
-        ++managerId;
-
-        if (BioResolve.DEBUG) System.out.println("[Info] Spawned a new empty process manager");
-
-        return newManager;
+        this.cachedManagers = new HashSet<>();
     }
 
     public ProcessManager spawnManager(List<InteractiveProcess> processes) {
@@ -76,10 +67,19 @@ public class ManagersCoordinator {
     public void compute() {
         int i = 0;
         while (i < managers.size()) {
-            String sep = " ------------------------------------------- "; // TODO: endless, probably needs caching
-            if (BioResolve.DEBUG) System.out.println(sep + "Running " + managers.get(i) + sep);
-            managers.get(i).run();
-            if (BioResolve.DEBUG) System.out.println(sep + "Ending " + managers.get(i) + sep);
+            if (!cachedManagers.contains(managers.get(i).getManagerCode())) {
+                String sep = " ------------------------------------------- ";
+                if (BioResolve.DEBUG) System.out.println(sep + "Running " + managers.get(i) + sep);
+                managers.get(i).run();
+                cachedManagers.add(managers.get(i).getManagerCode());
+                /*
+                    TODO for the .dot:
+                        - each process has to yield its sequence of results
+                        - each manager has to yield the sequences of results + activated reactions (products) of its parallel processes (graph? maybe just a multidim list of tuples (result, products leading to result) for each process)
+                        - since the same process is not repeated, the coordinator shouldn't (TO CHECK) have repetitions, thus the coordinator just has to compose the result of each manager
+                */
+                if (BioResolve.DEBUG) System.out.println(sep + "Ending " + managers.get(i) + sep);
+            }
 
             ++i;
         }
