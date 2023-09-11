@@ -6,12 +6,21 @@ public class ProcessManager {
     private final ReactionSystem rs;
     private List<InteractiveProcess> parallelProcesses;
 
+    /*
+     Since the manager needs to be uniquely identified by its parallelProcesses field but the field itself is subject
+     to change due to choices between contexts (+), 'managerCode' stores the manager's original identity, allowing it
+     to be cached by the coordinator.
+    */
+    private final int managerCode;
+
     private final Map<State, Set<Entity>> cachedResults;
+
+    private List<List<SequencePair>> processGraph;
 
     private final int managerId;
 
     public ProcessManager(int managerId, ReactionSystem rs, List<InteractiveProcess> parallelProcesses) throws IllegalArgumentException {
-        if (parallelProcesses != null && parallelProcesses.isEmpty())
+        if (parallelProcesses == null || parallelProcesses.isEmpty())
             throw new IllegalArgumentException("The provided list of processes is empty.");
 
         // All the processes share the same environment, hence taking the first is enough
@@ -28,12 +37,9 @@ public class ProcessManager {
         this.parallelProcesses = parallelProcesses;
         this.cachedResults = new HashMap<>();
         this.managerId = managerId;
-    }
-
-    public ProcessManager(int managerId, ReactionSystem rs) {
-        this.rs = rs;
-        this.cachedResults = new HashMap<>();
-        this.managerId = managerId;
+        this.managerCode = this.hashCode(); // TODO: ugly
+        this.processGraph = new ArrayList<>(parallelProcesses.size());
+        for (int i = 0; i < parallelProcesses.size(); ++i) this.processGraph.set(i, new ArrayList<>());
     }
 
     private void checkEntitiesBelongToRS(ReactionSystem rs, Context context) throws IllegalArgumentException {
@@ -57,6 +63,16 @@ public class ProcessManager {
 
     public void run() {
         while (compute()) {}
+    }
+
+    public class SequencePair {
+        private final Set<Entity> result;
+        private final Set<Entity> products;
+
+        private SequencePair(Set<Entity> result, Set<Entity> products) {
+            this.result = result;
+            this.products = products;
+        }
     }
 
     private class State {
@@ -114,19 +130,7 @@ public class ProcessManager {
         List<Integer> contextSequenceIndices = parallelProcesses.stream().map(InteractiveProcess::getContextSequenceIndex).toList();
         List<Context> contextSequences = parallelProcesses.stream().map(InteractiveProcess::getContextSequence).toList();
 
-        Set<Entity> cumulativeResult = cachedResults.get(new State(contextSequenceIndices, contextSequences));
-
-//        State temp = new State(contextSequenceIndices, contextSequences);
-//        for (Map.Entry<State, Set<Entity>> entry2 : cachedResults.entrySet()) {
-//            System.out.println(temp.equals(entry2.getKey()) ? temp + " == " + entry2.getKey() : temp + " != " + entry2.getKey());
-//            if (temp.equals(entry2.getKey())) {
-//                System.out.println("\t\t\tInside");
-//                Set<Entity> cccc = cachedResults.get(temp);
-//                System.out.println("\t\t\t" + cccc);
-//            }
-//        }
-
-        if (cumulativeResult != null) {
+        if (cachedResults.containsKey(new State(contextSequenceIndices, contextSequences))) {
             if (BioResolve.DEBUG)
                 System.out.println("[Warning] All results have already been computed. Stopping.");
             return false;
@@ -148,7 +152,7 @@ public class ProcessManager {
         if (endedProcessesNumber == parallelProcesses.size())
             return false;
 
-        cumulativeResult = rs.computeResults(mergedWSet);
+        Set<Entity> cumulativeResult = rs.computeResults(mergedWSet);
 
         if (cumulativeResult.isEmpty())
             return false;
@@ -156,20 +160,14 @@ public class ProcessManager {
         if (BioResolve.DEBUG)
             System.out.println(getResultString(cumulativeResult));
 
-        for (InteractiveProcess p : parallelProcesses)
-            p.pushResult(cumulativeResult);
+        for (int i = 0; i < parallelProcesses.size(); ++i) {
+            parallelProcesses.get(i).pushResult(cumulativeResult);
+            processGraph.get(i).add(new SequencePair(parallelProcesses.get(i).getCurrentResult(), cumulativeResult));
+        }
 
-//        cacheResult(cumulativeResult);
         cachedResults.put(new State(contextSequenceIndices, contextSequences), cumulativeResult);
 
         return true;
-    }
-
-    private void cacheResult(Set<Entity> cumulativeResult) {
-        List<Integer> contextSequenceIndices = parallelProcesses.stream().map(InteractiveProcess::getContextSequenceIndex).toList();
-        List<Context> contextSequences = parallelProcesses.stream().map(InteractiveProcess::getContextSequence).toList();
-
-        cachedResults.put(new State(contextSequenceIndices, contextSequences), cumulativeResult);
     }
 
     private String getResultString(Set<Entity> cumulativeResult) {
@@ -218,6 +216,14 @@ public class ProcessManager {
         parallelProcesses = processes;
     }
 
+    public Map<State, Set<Entity>> getCachedResults() {
+        return cachedResults;
+    }
+
+    public int getManagerCode() {
+        return managerCode;
+    }
+
     @Override
     public String toString() {
         StringBuilder s = new StringBuilder("Process manager containing: ");
@@ -226,5 +232,15 @@ public class ProcessManager {
             s.append(parallelProcesses.get(i)).append(i < parallelProcesses.size() - 1 ? ", " : "");
 
         return s.toString();
+    }
+
+    @Override
+    public int hashCode() {
+        int result = 17;
+
+        for (InteractiveProcess p : parallelProcesses)
+            result = result * 37 + p.hashCode();
+
+        return result;
     }
 }
