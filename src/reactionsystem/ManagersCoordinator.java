@@ -1,8 +1,12 @@
 package reactionsystem;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 
 public class ManagersCoordinator {
+    private final String GRAPHFILENAME = "result.dot";
     private static ReactionSystem rs = null;
 
     private static ManagersCoordinator instance = null;
@@ -11,7 +15,7 @@ public class ManagersCoordinator {
 
     private int managerId;
 
-    private Set<Integer> cachedManagers;
+    private Set<ProcessManager.State> cachedManagers;
 
     private ManagersCoordinator() {
         this.managers = new ArrayList<>();
@@ -58,7 +62,6 @@ public class ManagersCoordinator {
         filteredProcesses.add(toAdd);
 
         ProcessManager destManager = spawnManager(filteredProcesses); // TODO: can create a new manager constructor which skips checks (which are useless at this point)
-
 //        destManager.setParallelProcesses(filteredProcesses);
 
         return destManager;
@@ -67,21 +70,53 @@ public class ManagersCoordinator {
     public void compute() {
         int i = 0;
         while (i < managers.size()) {
-            if (!cachedManagers.contains(managers.get(i).getManagerCode())) {
                 String sep = " ------------------------------------------- ";
                 if (BioResolve.DEBUG) System.out.println(sep + "Running " + managers.get(i) + sep);
                 managers.get(i).run();
-                cachedManagers.add(managers.get(i).getManagerCode());
-                /*
-                    TODO for the .dot:
-                        - each process has to yield its sequence of results
-                        - each manager has to yield the sequences of results + activated reactions (products) of its parallel processes (graph? maybe just a multidim list of tuples (result, products leading to result) for each process)
-                        - since the same process is not repeated, the coordinator shouldn't (TO CHECK) have repetitions, thus the coordinator just has to compose the result of each manager
-                */
                 if (BioResolve.DEBUG) System.out.println(sep + "Ending " + managers.get(i) + sep);
-            }
+
 
             ++i;
+        }
+        if (BioResolve.DEBUG) System.out.println("All the managers finished their jobs.");
+        generateDOTGraph();
+    }
+
+    public void generateDOTGraph() {
+        StringBuilder graph = new StringBuilder("digraph G { node [shape=box] edge [arrowhead=vee] ");
+
+        // TODO: manage links between nodes first: for each node, if from not already visited (hashset) add it as a visited node, same for to, then create arc label.
+
+        Set<String> nodes = new HashSet<>();
+        Set<String> arcs = new HashSet<>();
+
+        for (ProcessManager p : managers) {
+            List<ProcessManager.NodePair> pGraph = p.getProcessGraph();
+            for (ProcessManager.NodePair node : pGraph) {
+                String from = "\"" + Entity.stringifyEntitiesCollection(node.getFrom()) + "\"";
+                String to = "\"" + Entity.stringifyEntitiesCollection(node.getTo()) + "\"";
+                String arc = from + " -> " + to + " [label = \"" + Entity.stringifyEntitiesCollection(node.getArc()) + "\"]";
+
+                nodes.add(from);
+                nodes.add(to);
+                arcs.add(arc);
+            }
+        }
+
+        for (String node : nodes)
+            graph.append(node).append(";\t");
+
+        for (String arc : arcs)
+            graph.append(arc).append(";\t");
+
+        graph.append("}");
+
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(GRAPHFILENAME));
+            writer.write(graph.toString());
+            writer.close();
+        } catch (IOException e) {
+            System.out.println("Could not write the .dot graph to file. " + e);
         }
     }
 
@@ -93,6 +128,10 @@ public class ManagersCoordinator {
 
     public int getNewManagerId() {
         return managerId;   // managerId tracks the Id of the next manager that will be created
+    }
+
+    public Set<ProcessManager.State> getCachedManagers() {
+        return cachedManagers;
     }
 
     public static void setRS(ReactionSystem rs) {
