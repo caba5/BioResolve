@@ -13,14 +13,14 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class InteractiveProcess {
     private final Environment environment;
-    private Context contextSequence;
-    private int contextSequenceIndex;
+    private Context contextSequence; // C set
+    private int contextSequenceIndex; // Index i of C
     
-    private final List<Set<Entity>> resultSequence;
-    private int resultSequenceIndex;
+    private final List<Set<Entity>> resultSequence; // D set
+    private int resultSequenceIndex; // Index i of D
     
-    private final List<Set<Entity>> stateSequence;
-    private int stateSequenceIndex;
+    private final List<Set<Entity>> stateSequence; // W set
+    private int stateSequenceIndex; // Index i of W
 
     public boolean hasEnded;
 
@@ -51,10 +51,16 @@ public class InteractiveProcess {
         stateSequence.add(parallelResult); // This is Wi = Ci U Di
         ++stateSequenceIndex;
 
-        resultSequence.add(parallelResult);
+        resultSequence.add(parallelResult); // This is Di+1 = Ci U Di
         ++resultSequenceIndex;
     }
-    
+
+    /**
+     * Computes the process' next result, possibly substituting variables (if C<sub>i</sub> is an environment variable or
+     * if it is a repeated context component) and creating new processes (if C<sub>i</sub> is a choice component).
+     *
+     * @return The next result D<sub>i</sub>.
+     */
     public Set<Entity> advanceStateSequence() {
         List<ContextComponent> contextComponents = contextSequence.getContext();
         if (contextComponents.isEmpty() || contextSequenceIndex >= contextComponents.size())
@@ -124,7 +130,7 @@ public class InteractiveProcess {
 
     public Integer getContextSequenceIndex() { return contextSequenceIndex; }
 
-    /*
+    /**
         Returns the string of the last computed context.
      */
     public String getLastContextAsString() {
@@ -136,6 +142,15 @@ public class InteractiveProcess {
         }
 
         return "";
+    }
+
+    public List<Entity> getLastContext() {
+        ContextComponent contextI = contextSequence.getContext().get(contextSequenceIndex - 1);
+
+        if (contextI instanceof  EntitiesContextComponent entitiesContextComponent)
+            return entitiesContextComponent.getEntities();
+
+        return new ArrayList<>();
     }
 
     public String getCurrentResultAsString() {
