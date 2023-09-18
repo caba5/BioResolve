@@ -1,7 +1,9 @@
 package reactionsystem;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -31,6 +33,18 @@ public class ChoiceContextComponent extends ContextComponent {
         }
         
         return seq;
+    }
+
+    @Override
+    public Set<Entity> getEntitiesSet() {
+        Set<Entity> s = new HashSet<>();
+
+        for (Context choice : choices) {
+            for (ContextComponent comp : choice.getContext())
+                s.addAll(comp.getEntitiesSet());
+        }
+
+        return s;
     }
     
     @Override

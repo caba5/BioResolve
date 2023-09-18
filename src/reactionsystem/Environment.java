@@ -15,10 +15,6 @@ public class Environment {
         this.env = parseEnvironment(env);
     }
     
-    public Map<String, Context> getEnv() {
-        return env;
-    }
-    
     private Map<String, Context> parseEnvironment(String env) {
         Map<String, Context> e = new HashMap<String, Context>();
 
@@ -64,6 +60,10 @@ public class Environment {
         } catch (Exception e) {
             throw new IllegalArgumentException("Failed parsing the environment. " + e);
         }
+    }
+
+    public Map<String, Context> getEnv() {
+        return env;
     }
     
     @Override

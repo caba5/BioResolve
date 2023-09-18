@@ -1,7 +1,9 @@
 package reactionsystem;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -14,6 +16,11 @@ public class NilContextComponent extends ContextComponent {
 //        seq.add(new Entity("nil"));
 //        return seq;
         return new ArrayList<>();
+    }
+
+    @Override
+    public Set<Entity> getEntitiesSet() {
+        return new HashSet<>(){{ add(new Entity("nil")); }};
     }
     
     @Override

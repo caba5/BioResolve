@@ -13,7 +13,7 @@ import static java.util.Collections.addAll;
  */
 public class BioResolve {
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
 
     /**
      * @param args the command line arguments
@@ -22,7 +22,5 @@ public class BioResolve {
         MainFrame frame = new MainFrame();
     }
     // TODO: when a nil is encountered, stop the computation (as it can further react just by using Di) <--- check
-    // TODO: Maybe cache results for recursive self-call
-    // TODO: Add normal strategy instead of random choice?
     // TODO: test environment multiple vars with recursive calls between them;
 }

@@ -1,7 +1,9 @@
 package reactionsystem;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -33,6 +35,16 @@ public class RepeatedContextComponent extends ContextComponent {
         }
         
         return seq;
+    }
+
+    @Override
+    public Set<Entity> getEntitiesSet() {
+        Set<Entity> s = new HashSet<>();
+
+        for (ContextComponent comp : sequence.getContext())
+            s.addAll(comp.getEntitiesSet());
+
+        return s;
     }
     
     @Override

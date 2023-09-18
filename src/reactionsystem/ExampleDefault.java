@@ -24,8 +24,13 @@ public class ExampleDefault {
 
         List<InteractiveProcess> pi = InteractiveProcess.createParallelProcesses(env, parGamma);
 
-//        ProcessManager pm = new ProcessManager(RS, pi);
+        ManagersCoordinator.setRS(RS);
+        ManagersCoordinator coordinator = ManagersCoordinator.getInstance();
 
-//        pm.run();
+        coordinator.spawnManager(pi);
+
+        coordinator.getLastManager().bindManagerToProcesses();
+
+        coordinator.compute();
     }
 }

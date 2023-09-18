@@ -1,7 +1,9 @@
 package reactionsystem;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -24,6 +26,11 @@ public class IdContextComponent extends ContextComponent {
 //        seq.add(new Entity(contextId));
 //        return seq;
         return new ArrayList<>();
+    }
+
+    @Override
+    public Set<Entity> getEntitiesSet() {
+        return new HashSet<>(){{ add(new Entity(contextId)); }}; // Hack: the contextId isn't a real Entity, but it works as such until inspected
     }
     
     @Override

@@ -84,8 +84,13 @@ public class ExampleHeatShock {
 
         List<InteractiveProcess> pi = InteractiveProcess.createParallelProcesses(env, parGamma);
 
-//        ProcessManager pm = new ProcessManager(RS, pi);
-//
-//        pm.run();
+        ManagersCoordinator.setRS(RS);
+        ManagersCoordinator coordinator = ManagersCoordinator.getInstance();
+
+        coordinator.spawnManager(pi);
+
+        coordinator.getLastManager().bindManagerToProcesses();
+
+        coordinator.compute();
     }
 }

@@ -1,6 +1,7 @@
 package reactionsystem;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -8,4 +9,9 @@ import java.util.List;
  */
 public abstract class ContextComponent {
     public abstract List<Entity> getEntitiesSequence();
+
+    public abstract Set<Entity> getEntitiesSet();
+
+    @Override
+    public abstract String toString();
 }

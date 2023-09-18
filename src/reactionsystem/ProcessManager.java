@@ -2,8 +2,6 @@ package reactionsystem;
 
 import java.util.*;
 
-import static java.util.Collections.addAll;
-
 public class ProcessManager {
     private final ReactionSystem rs;
     private List<InteractiveProcess> parallelProcesses;
@@ -14,8 +12,6 @@ public class ProcessManager {
      to be cached by the coordinator.
     */
     private final int managerCode;
-
-    private final Map<State, Set<Entity>> cachedResults;
 
     private List<NodePair> processGraph;
 
@@ -37,7 +33,6 @@ public class ProcessManager {
 
         this.rs = rs;
         this.parallelProcesses = parallelProcesses;
-        this.cachedResults = new HashMap<>();
         this.managerId = managerId;
         this.managerCode = this.hashCode();                                                                 // TODO: ugly
         this.processGraph = new ArrayList<>();
@@ -66,133 +61,69 @@ public class ProcessManager {
         while (compute()) {}
     }
 
-    public class NodePair {
-        private final Set<Entity> from;
-        private final Set<Entity> to;
-        private final Set<Entity> arc;
-
-        private NodePair(Set<Entity> from, Set<Entity> to, Set<Entity> arc) {
-            this.from = from;
-            this.to = to;
-            this.arc = arc;
-        }
-
-        public Set<Entity> getFrom() {
-            return from;
-        }
-
-        public Set<Entity> getTo() {
-            return to;
-        }
-
-        public Set<Entity> getArc() {
-            return arc;
-        };
-    }
-
-    public class State {
-        private final List<Integer> contextSequenceIndices;
-        private final List<Context> contextSequences;
-        private final Set<Entity> result;
-
-        private State(List<Integer> contextSequenceIndices, List<Context> contextSequences, Set<Entity> result) {
-            this.contextSequenceIndices = contextSequenceIndices;
-            this.contextSequences = contextSequences;
-            this.result = result; // result won't be null as this constructor's call is made after its explicit checking
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null) return false;
-            if (this.getClass() != o.getClass()) return false;
-
-            State s = (State) o;
-            return contextSequences.equals(s.contextSequences)
-                    && contextSequenceIndices.equals(s.contextSequenceIndices)
-                    && result.equals(s.result);
-        }
-
-        @Override
-        public int hashCode() {
-            int result = 17;
-
-            for (int idx : contextSequenceIndices)
-                result = result * 37 + idx;
-
-            for (Context ctx : contextSequences)
-                result = result * 37 + ctx.hashCode();
-
-            result = result * 37 + this.result.hashCode();
-
-            return result;
-        }
-
-        @Override
-        public String toString() {
-            StringBuilder s = new StringBuilder("{ Indices: [");
-
-            for (int i = 0; i < contextSequenceIndices.size(); ++i)
-                s.append(contextSequenceIndices.get(i)).append(i < contextSequenceIndices.size() - 1 ? ", " : "");
-
-            s.append("], Contexts: [");
-
-            for (int i = 0; i < contextSequences.size(); ++i)
-                s.append(contextSequences.get(i)).append(i < contextSequences.size() - 1 ? ", " : "");
-
-            s.append("] }");
-
-            return s.toString();
-        }
-    }
-
     private boolean compute() {
         Set<Entity> mergedWSet = new HashSet<>();
 
         int endedProcessesNumber = 0; // Keep track of the number of processes which have reached 'nil'
 
+        StringBuilder fromContext = new StringBuilder();
+
         for (InteractiveProcess p : parallelProcesses) {
+            fromContext.append(" | ").append(p.getRemainingContextAsString());
             Set<Entity> processResult = p.advanceStateSequence();
 
             if (p.hasEnded) ++endedProcessesNumber;
             else if (processResult != null) mergedWSet.addAll(processResult);
         }
-
         if (endedProcessesNumber == parallelProcesses.size()) // Return if all the processes have reached their last point
             return false;
 
         Set<Entity> cumulativeResult = rs.computeResults(mergedWSet); // cumulativeResult = Wi
 
-        if (cumulativeResult.isEmpty()) return false;
-
         if (BioResolve.DEBUG) System.out.println(getResultString(cumulativeResult)); // TODO: pass the below results instead of recomputing
 
         Set<Entity> from = new HashSet<>(); // Di
         Set<Entity> arc = new HashSet<>(); // Ci U Di
+        StringBuilder toContext = new StringBuilder();
 
-        for (int i = 0; i < parallelProcesses.size(); ++i) {
-            from.addAll(parallelProcesses.get(i).getCurrentResult());
-            arc.addAll(parallelProcesses.get(i).getLastContext());
-            parallelProcesses.get(i).pushResult(cumulativeResult);
+        for (InteractiveProcess parallelProcess : parallelProcesses) {
+            from.addAll(parallelProcess.getCurrentResult());
+            arc.addAll(parallelProcess.getLastContext());
+            parallelProcess.pushResult(cumulativeResult);
+            toContext.append(" | ").append(parallelProcess.getRemainingContextAsString());
         }
 
         arc.addAll(from);
 
-        processGraph.add(new NodePair(from, cumulativeResult, arc));
+        if (parallelProcesses.get(0).getResultSequence().size() == 2) { // This corresponds to being the initial node // TODO: parallel?
+            from.add(new Entity("-"));
 
-        // Get each process' 'i'
-        List<Integer> contextSequenceIndices = parallelProcesses.stream().map(InteractiveProcess::getContextSequenceIndex).toList();
-        // Get each process' 'C'
-        List<Context> contextSequences = parallelProcesses.stream().map(InteractiveProcess::getContextSequence).toList();
+            // Get the environment shared by all the processes
+            List<String> environmentVars = new ArrayList<>(parallelProcesses.get(0).getEnvironment().getEnv().keySet());
+            fromContext = new StringBuilder();
+            for (InteractiveProcess p : parallelProcesses)
+                // Since there are as many parallel processes as there are variables in the environment, it is ok to use the same index
+                fromContext.append(" | ").append(p.getInitialContext());
+        } else if (parallelProcesses.get(0).getContextSequenceIndex() == 1 && !parallelProcesses.get(0).getStemsFrom().isEmpty()) { // TODO: parallel?
+            fromContext = new StringBuilder();
+            for (InteractiveProcess p : parallelProcesses)
+                fromContext.append(" | ").append(p.getStemsFrom());
+        }
 
-        State currentProcessesState = new State(contextSequenceIndices, contextSequences, cumulativeResult); // TODO: would it be correct if caching just the result? Think about getting to the same Wi but having different Ci and Di (probably not the same)
+        NodePair node = new NodePair(from, fromContext.toString(), cumulativeResult, toContext.toString(), arc);
 
-        if (ManagersCoordinator.getInstance().getCachedManagers().contains(currentProcessesState)) { // !!!!!!!!!!!!!!TODO: for some reason it doesn't compute the small iOP to itself nor from initial to small iOP
+        System.out.println("\t\t\t\tThis manager's node: " + node);
+
+        processGraph.add(node);
+
+        if (cumulativeResult.isEmpty()) return false;
+
+        if (ManagersCoordinator.getInstance().getCachedManagers().contains(node)) {
             if (BioResolve.DEBUG) System.out.println("[Warning] All results have already been computed. Stopping.");
             return false;
         }
 
-        ManagersCoordinator.getInstance().getCachedManagers().add(currentProcessesState); // TODO: useless to be a map: the key already contains the value
+        ManagersCoordinator.getInstance().getCachedManagers().add(node);
 
         return true;
     }
@@ -252,10 +183,6 @@ public class ProcessManager {
         parallelProcesses = processes;
     }
 
-    public Map<State, Set<Entity>> getCachedResults() {
-        return cachedResults;
-    }
-
     public int getManagerCode() {
         return managerCode;
     }
@@ -266,10 +193,21 @@ public class ProcessManager {
 
     @Override
     public String toString() {
-        StringBuilder s = new StringBuilder("Process manager containing: ");
+        StringBuilder s = new StringBuilder("Process manager with state: ");
 
-        for (int i = 0; i < parallelProcesses.size(); ++i)
-            s.append(parallelProcesses.get(i)).append(i < parallelProcesses.size() - 1 ? ", " : "");
+        Set<Entity> cumRes = new HashSet<>();
+        Set<Entity> cumCtx = new HashSet<>();
+
+        for (InteractiveProcess p : parallelProcesses) {
+            cumRes.addAll(p.getCurrentResult());
+            cumCtx.addAll(p.getLastContext());
+        }
+
+        s.append("{").append(Entity.stringifyEntitiesCollection(cumRes)).append("}");
+
+        s.append(", and current merged context: ");
+
+        s.append("{").append(Entity.stringifyEntitiesCollection(cumCtx)).append("}");
 
         return s.toString();
     }

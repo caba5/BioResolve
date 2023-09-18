@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.util.*;
 
 public class ManagersCoordinator {
-    private final String GRAPHFILENAME = "result.dot";
     private static ReactionSystem rs = null;
 
     private static ManagersCoordinator instance = null;
@@ -15,7 +14,7 @@ public class ManagersCoordinator {
 
     private int managerId;
 
-    private Set<ProcessManager.State> cachedManagers;
+    private Set<NodePair> cachedManagers;
 
     private ManagersCoordinator() {
         this.managers = new ArrayList<>();
@@ -29,7 +28,7 @@ public class ManagersCoordinator {
         managers.add(newManager);
         ++managerId;
 
-        if (BioResolve.DEBUG) System.out.println("[Info] Spawned a new process manager");
+        System.out.println("[Info] Spawned a new process manager " + newManager + " with id " + (managerId - 1));
 
         return newManager;
     }
@@ -57,7 +56,7 @@ public class ManagersCoordinator {
 
         List<InteractiveProcess> filteredProcesses = new ArrayList<>(sourceProcesses.size());
         for (InteractiveProcess p : sourceProcesses)
-            if (!p.equals(toDiscard)) filteredProcesses.add(p);
+            if (!p.equals(toDiscard)) filteredProcesses.add(p.clone(managerId));
 
         filteredProcesses.add(toAdd);
 
@@ -70,10 +69,11 @@ public class ManagersCoordinator {
     public void compute() {
         int i = 0;
         while (i < managers.size()) {
-                String sep = " ------------------------------------------- ";
-                if (BioResolve.DEBUG) System.out.println(sep + "Running " + managers.get(i) + sep);
-                managers.get(i).run();
-                if (BioResolve.DEBUG) System.out.println(sep + "Ending " + managers.get(i) + sep);
+            System.out.println("ManagerID " + i);
+            String sep = " ------------------------------------------- ";
+            if (BioResolve.DEBUG) System.out.println(sep + "Running " + managers.get(i) + sep);
+            managers.get(i).run();
+            if (BioResolve.DEBUG) System.out.println(sep + "Ending " + managers.get(i) + sep);
 
 
             ++i;
@@ -83,18 +83,18 @@ public class ManagersCoordinator {
     }
 
     public void generateDOTGraph() {
-        StringBuilder graph = new StringBuilder("digraph G { node [shape=box] edge [arrowhead=vee] ");
+        final String GRAPHFILENAME = "result.dot";
 
-        // TODO: manage links between nodes first: for each node, if from not already visited (hashset) add it as a visited node, same for to, then create arc label.
+        StringBuilder graph = new StringBuilder("digraph G { node [shape=box] edge [arrowhead=vee] ");
 
         Set<String> nodes = new HashSet<>();
         Set<String> arcs = new HashSet<>();
 
         for (ProcessManager p : managers) {
-            List<ProcessManager.NodePair> pGraph = p.getProcessGraph();
-            for (ProcessManager.NodePair node : pGraph) {
-                String from = "\"" + Entity.stringifyEntitiesCollection(node.getFrom()) + "\"";
-                String to = "\"" + Entity.stringifyEntitiesCollection(node.getTo()) + "\"";
+            List<NodePair> pGraph = p.getProcessGraph();
+            for (NodePair node : pGraph) {
+                String from = "\"" + Entity.stringifyEntitiesCollection(node.getFrom()) + node.getFromContext() + "\"";
+                String to = "\"" + Entity.stringifyEntitiesCollection(node.getTo()) + node.getToContext() + "\"";
                 String arc = from + " -> " + to + " [label = \"" + Entity.stringifyEntitiesCollection(node.getArc()) + "\"]";
 
                 nodes.add(from);
@@ -130,7 +130,7 @@ public class ManagersCoordinator {
         return managerId;   // managerId tracks the Id of the next manager that will be created
     }
 
-    public Set<ProcessManager.State> getCachedManagers() {
+    public Set<NodePair> getCachedManagers() {
         return cachedManagers;
     }
 

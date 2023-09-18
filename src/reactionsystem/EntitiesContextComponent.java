@@ -1,6 +1,8 @@
 package reactionsystem;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -20,6 +22,11 @@ public class EntitiesContextComponent extends ContextComponent {
     @Override
     public List<Entity> getEntitiesSequence() {
         return entities;
+    }
+
+    @Override
+    public Set<Entity> getEntitiesSet() {
+        return new HashSet<>(entities);
     }
     
     @Override
