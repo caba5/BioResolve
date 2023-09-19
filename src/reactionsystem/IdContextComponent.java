@@ -12,7 +12,7 @@ import java.util.Set;
 public class IdContextComponent extends ContextComponent {
     private final String contextId;
     
-    public IdContextComponent(String id) {
+    public IdContextComponent(final String id) {
         this.contextId = id;
     }
     
@@ -22,9 +22,6 @@ public class IdContextComponent extends ContextComponent {
 
     @Override
     public List<Entity> getEntitiesSequence() { // An id component should not return any entity (since it contains just an id)
-//        List<Entity> seq = new ArrayList<>();
-//        seq.add(new Entity(contextId));
-//        return seq;
         return new ArrayList<>();
     }
 

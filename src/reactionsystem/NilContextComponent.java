@@ -12,9 +12,6 @@ import java.util.Set;
 public class NilContextComponent extends ContextComponent {
     @Override
     public List<Entity> getEntitiesSequence() { // A nil component shouldn't return any entity (since it contains only nil)
-//        List<Entity> seq = new ArrayList<Entity>();
-//        seq.add(new Entity("nil"));
-//        return seq;
         return new ArrayList<>();
     }
 

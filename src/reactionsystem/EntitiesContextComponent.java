@@ -11,7 +11,7 @@ import java.util.Set;
 public class EntitiesContextComponent extends ContextComponent {
     private final List<Entity> entities;
     
-    public EntitiesContextComponent(List<Entity> entities) {
+    public EntitiesContextComponent(final List<Entity> entities) {
         this.entities = entities;
     }
     
@@ -31,13 +31,10 @@ public class EntitiesContextComponent extends ContextComponent {
     
     @Override
     public String toString() {
-        StringBuilder s = new StringBuilder("{");
+        final StringBuilder s = new StringBuilder("{");
 
-        for (int i = 0; i < entities.size(); ++i) {
-            s.append(entities.get(i).toString());
-            if (i < entities.size() - 1)
-                s.append(",");
-        }
+        for (int i = 0; i < entities.size(); ++i)
+            s.append(entities.get(i).toString()).append(i < entities.size() - 1 ? "," : "");
 
         s.append("}");
 

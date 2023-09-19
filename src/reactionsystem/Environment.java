@@ -11,12 +11,12 @@ import java.util.Map;
 public class Environment {
     private final Map<String, Context> env;
     
-    public Environment(String env) {
+    public Environment(final String env) {
         this.env = parseEnvironment(env);
     }
     
-    private Map<String, Context> parseEnvironment(String env) {
-        Map<String, Context> e = new HashMap<String, Context>();
+    private Map<String, Context> parseEnvironment(final String env) {
+        final Map<String, Context> e = new HashMap<>();
 
         /*
         A possibly more precise regex(?)
@@ -24,8 +24,8 @@ public class Environment {
          */
         
         if (env.matches(".*\\s*,\\s*(?=\\w+\\s*=).*")) {
-            String[] assignments = env.split("\\s*,\\s*(?=\\w+\\s*=)");
-            for (String assignment : assignments)
+            final String[] assignments = env.split("\\s*,\\s*(?=\\w+\\s*=)");
+            for (final String assignment : assignments)
                 parseEnvironmentSingle(assignment, e);
         } else
             parseEnvironmentSingle(env, e);
@@ -33,20 +33,20 @@ public class Environment {
         return e;
     }
     
-    private void parseEnvironmentSingle(String assignment, Map<String, Context> map) throws IllegalArgumentException {
+    private void parseEnvironmentSingle(final String assignment, final Map<String, Context> map) throws IllegalArgumentException {
         if (assignment.isBlank())
             return;
         
         try {
             if (assignment.matches("^\\w+\\s*=\\s*.*")) {
-                int indexEqual = assignment.indexOf('=');
-                String varName = assignment.substring(0, indexEqual).trim();
-                String rest = assignment.substring(indexEqual + 1).trim();
+                final int indexEqual = assignment.indexOf('=');
+                final String varName = assignment.substring(0, indexEqual).trim();
+                final String rest = assignment.substring(indexEqual + 1).trim();
 
                 if (rest.contains(varName))
                     System.out.println("[Warning] The definition " + assignment + " appears to be recursive. This can lead to non-termination.");
                 
-                Context comp;
+                final Context comp;
                 
                 if (rest.charAt(0) == '(')
                     comp = Context.parseContext(rest.substring(1, rest.length() - 1));
@@ -68,10 +68,10 @@ public class Environment {
     
     @Override
     public String toString() {
-        StringBuilder s = new StringBuilder();
+        final StringBuilder s = new StringBuilder();
         
         for (Map.Entry<String, Context> e : env.entrySet()) {
-            List<ContextComponent> comps = e.getValue().getContext();
+            final List<ContextComponent> comps = e.getValue().getContext();
             
             s.append(e.getKey()).append(": ");
             

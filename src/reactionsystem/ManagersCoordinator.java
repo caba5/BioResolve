@@ -14,7 +14,7 @@ public class ManagersCoordinator {
 
     private int managerId;
 
-    private Set<NodePair> cachedManagers;
+    private final Set<NodePair> cachedManagers;
 
     private ManagersCoordinator() {
         this.managers = new ArrayList<>();
@@ -22,80 +22,68 @@ public class ManagersCoordinator {
         this.cachedManagers = new HashSet<>();
     }
 
-    public ProcessManager spawnManager(List<InteractiveProcess> processes) {
-        ProcessManager newManager = new ProcessManager(managerId, rs, processes);
+    public void spawnManager(final List<InteractiveProcess> processes) {
+        final ProcessManager newManager = new ProcessManager(managerId, rs, processes, false);
 
         managers.add(newManager);
         ++managerId;
 
-        System.out.println("[Info] Spawned a new process manager " + newManager + " with id " + (managerId - 1));
+        if (BioResolve.DEBUG) System.out.println("[Info] Spawned a new process manager with id " + (managerId - 1));
 
-        return newManager;
     }
 
-    public void attachProcessesToManager(int managerId, List<InteractiveProcess> processes) throws IllegalArgumentException {
-        if (managerId < 0 || managerId >= this.managerId)
-            throw new IllegalArgumentException("No such manager.");
-
-        ProcessManager selectedManager = managers.get(managerId);
-        selectedManager.setParallelProcesses(processes);
-    }
-
-    public ProcessManager cloneManagerSubstitutingProcess(
-            int sourceManagerId,
-            InteractiveProcess toDiscard,
-            InteractiveProcess toAdd
+    public void cloneManagerSubstitutingProcess(
+            final int sourceManagerId,
+            final InteractiveProcess toDiscard,
+            final InteractiveProcess toAdd
     ) throws IllegalArgumentException {
         if (sourceManagerId >= managerId ||  sourceManagerId < 0)
             throw new IllegalArgumentException("No such manager.");
         if (toAdd == null)
             throw new IllegalArgumentException("Cannot push a null InteractiveProcess");
 
-        ProcessManager sourceManager = managers.get(sourceManagerId);
-        List<InteractiveProcess> sourceProcesses = sourceManager.getParallelProcesses();
+        final ProcessManager sourceManager = managers.get(sourceManagerId);
+        final List<InteractiveProcess> sourceProcesses = sourceManager.getParallelProcesses();
 
-        List<InteractiveProcess> filteredProcesses = new ArrayList<>(sourceProcesses.size());
-        for (InteractiveProcess p : sourceProcesses)
+        final List<InteractiveProcess> filteredProcesses = new ArrayList<>(sourceProcesses.size());
+        for (final InteractiveProcess p : sourceProcesses)
             if (!p.equals(toDiscard)) filteredProcesses.add(p.clone(managerId));
 
         filteredProcesses.add(toAdd);
 
-        ProcessManager destManager = spawnManager(filteredProcesses); // TODO: can create a new manager constructor which skips checks (which are useless at this point)
-//        destManager.setParallelProcesses(filteredProcesses);
-
-        return destManager;
+        spawnManager(filteredProcesses);
     }
 
     public void compute() {
+        final String sep = " ------------------------------------------- ";
         int i = 0;
-        while (i < managers.size()) {
-            System.out.println("ManagerID " + i);
-            String sep = " ------------------------------------------- ";
-            if (BioResolve.DEBUG) System.out.println(sep + "Running " + managers.get(i) + sep);
-            managers.get(i).run();
-            if (BioResolve.DEBUG) System.out.println(sep + "Ending " + managers.get(i) + sep);
 
+        while (i < managers.size()) {
+            if (BioResolve.DEBUG) System.out.println(sep + "Running manager " + i + sep);
+            managers.get(i).run();
+            if (BioResolve.DEBUG) System.out.println(sep + "Ending manager " + i + sep);
 
             ++i;
         }
-        if (BioResolve.DEBUG) System.out.println("All the managers finished their jobs.");
+        if (BioResolve.DEBUG) System.out.println("All managers finished their jobs.");
+
         generateDOTGraph();
     }
 
     public void generateDOTGraph() {
         final String GRAPHFILENAME = "result.dot";
 
-        StringBuilder graph = new StringBuilder("digraph G { node [shape=box] edge [arrowhead=vee] ");
+        final StringBuilder graph = new StringBuilder("digraph G { node [shape=box] edge [arrowhead=vee] ");
 
-        Set<String> nodes = new HashSet<>();
-        Set<String> arcs = new HashSet<>();
+        final Set<String> nodes = new HashSet<>();
+        final Set<String> arcs = new HashSet<>();
 
-        for (ProcessManager p : managers) {
-            List<NodePair> pGraph = p.getProcessGraph();
-            for (NodePair node : pGraph) {
-                String from = "\"" + Entity.stringifyEntitiesCollection(node.getFrom()) + node.getFromContext() + "\"";
-                String to = "\"" + Entity.stringifyEntitiesCollection(node.getTo()) + node.getToContext() + "\"";
-                String arc = from + " -> " + to + " [label = \"" + Entity.stringifyEntitiesCollection(node.getArc()) + "\"]";
+        for (final ProcessManager p : managers) {
+            final List<NodePair> pGraph = p.getProcessGraph();
+            for (final NodePair node : pGraph) {
+                final String from = "\"" + Entity.stringifyEntitiesCollection(node.from()) + node.fromContext() + "\"";
+                final String to = "\"" + Entity.stringifyEntitiesCollection(node.to()) + node.toContext() + "\"";
+                final String arc = from + " -> " + to + " [label = \"" + Entity.stringifyEntitiesCollection(node.arc()) + "\"]";
 
                 nodes.add(from);
                 nodes.add(to);
@@ -103,26 +91,27 @@ public class ManagersCoordinator {
             }
         }
 
-        for (String node : nodes)
+        for (final String node : nodes)
             graph.append(node).append(";\t");
 
-        for (String arc : arcs)
+        for (final String arc : arcs)
             graph.append(arc).append(";\t");
 
         graph.append("}");
 
         try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter(GRAPHFILENAME));
+            final BufferedWriter writer = new BufferedWriter(new FileWriter(GRAPHFILENAME));
             writer.write(graph.toString());
             writer.close();
         } catch (IOException e) {
-            System.out.println("Could not write the .dot graph to file. " + e);
+            System.err.println("Could not write the .dot graph to file. " + e);
         }
     }
 
     public ProcessManager getLastManager() {
         if (managerId > 0)
             return managers.get(managerId - 1);
+
         return null;
     }
 
@@ -134,7 +123,7 @@ public class ManagersCoordinator {
         return cachedManagers;
     }
 
-    public static void setRS(ReactionSystem rs) {
+    public static void setRS(final ReactionSystem rs) {
         ManagersCoordinator.rs = rs;
     }
 

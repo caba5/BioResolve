@@ -29,7 +29,7 @@ public class InteractiveProcess {
     private String stemsFrom;
     private final Context initialContext;
 
-    public static List<InteractiveProcess> createParallelProcesses(Environment env, List<Context> parallelContexts) {
+    public static List<InteractiveProcess> createParallelProcesses(final Environment env, final List<Context> parallelContexts) {
         List<InteractiveProcess> parallelProcesses = new ArrayList<>(parallelContexts.size());
 
         for (Context ctx : parallelContexts) {
@@ -40,7 +40,7 @@ public class InteractiveProcess {
         return parallelProcesses;
     }
     
-    public InteractiveProcess(int managerId, Environment env, Context contextSequence) { // TODO: check contexts first marking which are used in order to avoid throwing if env contains some unused var
+    public InteractiveProcess(final int managerId, final Environment env, final Context contextSequence) {
         this.environment = env;
         this.contextSequence = contextSequence;
         this.initialContext = contextSequence;
@@ -56,17 +56,17 @@ public class InteractiveProcess {
 
     // This constructor is used when creating a (quasi-deep) clone of a process
     private InteractiveProcess(
-            int managerId,
-            Environment env,
-            Context contextSequence,
-            int contextSequenceIndex,
-            List<Set<Entity>> stateSequence,
-            int stateSequenceIndex,
-            List<Set<Entity>> resultSequence,
-            int resultSequenceIndex,
-            String initiallySubstitutedFrom,
-            String stemsFrom,
-            Context initialContext
+            final int managerId,
+            final Environment env,
+            final Context contextSequence,
+            final int contextSequenceIndex,
+            final List<Set<Entity>> stateSequence,
+            final int stateSequenceIndex,
+            final List<Set<Entity>> resultSequence,
+            final int resultSequenceIndex,
+            final String initiallySubstitutedFrom,
+            final String stemsFrom,
+            final Context initialContext
     ) {
         this.managerId = managerId;
         this.environment = env;
@@ -81,7 +81,7 @@ public class InteractiveProcess {
         this.initialContext = initialContext;
     }
 
-    public void pushResult(Set<Entity> parallelResult) {
+    public void pushResult(final Set<Entity> parallelResult) {
         stateSequence.add(parallelResult); // This is Wi = Ci U Di
         ++stateSequenceIndex;
 
@@ -98,29 +98,35 @@ public class InteractiveProcess {
      * @return The next result D<sub>i</sub>.
      */
     public Set<Entity> advanceStateSequence() {
-        List<ContextComponent> contextComponents = contextSequence.getContext();
+        final List<ContextComponent> contextComponents = contextSequence.getContext();
         if (contextComponents.isEmpty() || contextSequenceIndex >= contextComponents.size())
             return null;
 
-        Set<Entity> wSet;
+        final Set<Entity> wSet;
         
-        ContextComponent contextI = contextComponents.get(contextSequenceIndex);
+        final ContextComponent contextI = contextComponents.get(contextSequenceIndex);
         
         if (contextI instanceof ChoiceContextComponent choiceContextComponent) {
-            List<Context> choices = choiceContextComponent.getChoices();
+            final List<Context> choices = choiceContextComponent.getChoices();
 
-            ManagersCoordinator coordinator = ManagersCoordinator.getInstance();
+            final ManagersCoordinator coordinator = ManagersCoordinator.getInstance();
 
             for (int i = 1; i < choices.size(); ++i) { // Creates a new manager containing the new process for each choice
-                InteractiveProcess choiceProcess = new InteractiveProcess(coordinator.getNewManagerId(), environment, choices.get(i), 0, stateSequence, stateSequenceIndex, new ArrayList<>(resultSequence), resultSequenceIndex, initiallySubstitutedFrom, stemsFrom, initialContext);
-                coordinator.cloneManagerSubstitutingProcess(managerId, this, choiceProcess); // TODO: split function into spawn(), substitute(), and addManager() (might merge the first two for efficiency reasons)
+                final InteractiveProcess choiceProcess = new InteractiveProcess(
+                        coordinator.getNewManagerId(),
+                        environment,
+                        choices.get(i),
+                        0,
+                        stateSequence,
+                        stateSequenceIndex,
+                        new ArrayList<>(resultSequence),
+                        resultSequenceIndex,
+                        initiallySubstitutedFrom,
+                        stemsFrom,
+                        initialContext
+                );
+                coordinator.cloneManagerSubstitutingProcess(managerId, this, choiceProcess);
             }
-
-//            Context chosenContext = choices.get(ThreadLocalRandom.current().nextInt(0, choices.size())); // TODO: add modular choice strategy
-//
-//            if (BioResolve.DEBUG) System.out.println("[Info] Context " + chosenContext + " has been chosen");
-//
-//            contextSequence = chosenContext; // The chosen context will become the new working context // TODO: change if the strategy changes
 
             contextSequence = choices.get(0); // This process takes the first choice
             contextSequenceIndex = 0;
@@ -128,7 +134,7 @@ public class InteractiveProcess {
             return advanceStateSequence(); // Recursively destructure choices
         } else if (contextI instanceof IdContextComponent idContextComponent) {
             if (initiallySubstitutedFrom.isEmpty()) initiallySubstitutedFrom = idContextComponent.getId();
-            Context refContext = environment.getEnv().get(idContextComponent.getId()); // This is checked in the constructor
+            final Context refContext = environment.getEnv().get(idContextComponent.getId()); // This is checked in the constructor
 
             stemsFrom = idContextComponent.getId();
 
@@ -137,13 +143,13 @@ public class InteractiveProcess {
             
             return advanceStateSequence();
         } else if (contextI instanceof RepeatedContextComponent repeatedContextComponent) {
-            Context translatedContext = repeatedContextComponent.getRepeatedSequence();
+            final Context translatedContext = repeatedContextComponent.getRepeatedSequence();
             
             contextSequence.getSubstitutedContext(stateSequenceIndex, translatedContext);
             
             return advanceStateSequence();
         } else if (contextI instanceof EntitiesContextComponent entitiesContextComponent) {
-            List<Entity> contextEntities = entitiesContextComponent.getEntities();
+            final List<Entity> contextEntities = entitiesContextComponent.getEntities();
             
             wSet = new HashSet<>() { { addAll(contextEntities); addAll(resultSequence.get(resultSequenceIndex)); } };
 
@@ -160,26 +166,15 @@ public class InteractiveProcess {
         return wSet;
     }
 
-    public InteractiveProcess clone(int callerManagerId) {
-        if (!dirty) return new InteractiveProcess(
-                callerManagerId,
-                environment,
-                contextSequence,
-                contextSequenceIndex,
-                stateSequence,
-                stateSequenceIndex,
-                new ArrayList<>(resultSequence),
-                resultSequenceIndex,
-                initiallySubstitutedFrom,
-                stemsFrom,
-                initialContext
-        );
+    public InteractiveProcess clone(final int callerManagerId) {
+        // Decrement the context sequence's index if it is dirty (it has advanced)
+        final int contextSequenceIndex = dirty ? this.contextSequenceIndex - 1 : this.contextSequenceIndex;
 
         return new InteractiveProcess(
                 callerManagerId,
                 environment,
                 contextSequence,
-                contextSequenceIndex - 1, // Since the process is dirty, it has advanced its index
+                contextSequenceIndex,
                 stateSequence,
                 stateSequenceIndex,
                 new ArrayList<>(resultSequence),
@@ -200,16 +195,14 @@ public class InteractiveProcess {
 
     public Integer getContextSequenceIndex() { return contextSequenceIndex; }
 
-    public String getInitiallySubstitutedFrom() { return initiallySubstitutedFrom; }
-
     /**
         Returns the string of the last computed context.
      */
     public String getLastContextAsString() {
-        ContextComponent contextI = contextSequence.getContext().get(contextSequenceIndex - 1);
+        final ContextComponent contextI = contextSequence.getContext().get(contextSequenceIndex - 1);
 
         if (contextI instanceof EntitiesContextComponent entitiesContextComponent) {
-            List<Entity> contextEntities = entitiesContextComponent.getEntities();
+            final List<Entity> contextEntities = entitiesContextComponent.getEntities();
             return Entity.stringifyEntitiesCollection(contextEntities);
         }
 
@@ -217,7 +210,7 @@ public class InteractiveProcess {
     }
 
     public List<Entity> getLastContext() {
-        ContextComponent contextI = contextSequence.getContext().get(Math.max(contextSequenceIndex - 1, 0));
+        final ContextComponent contextI = contextSequence.getContext().get(Math.max(contextSequenceIndex - 1, 0));
 
         if (contextI instanceof  EntitiesContextComponent entitiesContextComponent)
             return entitiesContextComponent.getEntities();
@@ -230,21 +223,15 @@ public class InteractiveProcess {
     }
 
     public String getRemainingContextAsString() {
-        StringBuilder s = new StringBuilder();
+        final StringBuilder s = new StringBuilder();
 
-        List<ContextComponent> contextComponents = contextSequence.getContext();
+        final List<ContextComponent> contextComponents = contextSequence.getContext();
 
         for (int i = contextSequenceIndex; i < contextComponents.size(); ++i)
             s.append(contextComponents.get(i))
                 .append(i < contextComponents.size() - 1 ? "." : "");
 
         return s.toString();
-    }
-
-    public String getCurrentResultAsString() {
-        Set<Entity> currentResult = resultSequence.get(resultSequenceIndex);
-
-        return Entity.stringifyEntitiesCollection(currentResult);
     }
 
     public Set<Entity> getCurrentResult() {
@@ -257,10 +244,6 @@ public class InteractiveProcess {
 
     public void setManagerId(int managerId) {
         this.managerId = managerId;
-    }
-
-    private void setContextSequenceIndex(int i) {
-        contextSequenceIndex = i;
     }
 
     public String getStemsFrom() {

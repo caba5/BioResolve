@@ -69,9 +69,5 @@ public class ExampleLactose {
         coordinator.getLastManager().bindManagerToProcesses();
 
         coordinator.compute();
-
-//        ProcessManager pm = new ProcessManager(RS, pi);
-
-//        pm.run();
     }
 }

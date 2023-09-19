@@ -12,7 +12,7 @@ import java.util.Set;
 public class ChoiceContextComponent extends ContextComponent {
     private final List<Context> choices;
     
-    public ChoiceContextComponent(List<Context> choices) {
+    public ChoiceContextComponent(final List<Context> choices) {
         this.choices = choices;
     }
     
@@ -22,12 +22,12 @@ public class ChoiceContextComponent extends ContextComponent {
 
     @Override
     public List<Entity> getEntitiesSequence() {
-        List<Entity> seq = new ArrayList<>();
+        final List<Entity> seq = new ArrayList<>();
         
-        for (Context choice : choices) {
-            List<ContextComponent> ctx = choice.getContext();
-            for (ContextComponent comp : ctx) {
-                List<Entity> entitiesSeq = comp.getEntitiesSequence();
+        for (final Context choice : choices) {
+            final List<ContextComponent> ctx = choice.getContext();
+            for (final ContextComponent comp : ctx) {
+                final List<Entity> entitiesSeq = comp.getEntitiesSequence();
                 seq.addAll(entitiesSeq);
             }
         }
@@ -37,10 +37,10 @@ public class ChoiceContextComponent extends ContextComponent {
 
     @Override
     public Set<Entity> getEntitiesSet() {
-        Set<Entity> s = new HashSet<>();
+        final Set<Entity> s = new HashSet<>();
 
-        for (Context choice : choices) {
-            for (ContextComponent comp : choice.getContext())
+        for (final Context choice : choices) {
+            for (final ContextComponent comp : choice.getContext())
                 s.addAll(comp.getEntitiesSet());
         }
 
@@ -49,17 +49,15 @@ public class ChoiceContextComponent extends ContextComponent {
     
     @Override
     public String toString() {
-        StringBuilder s = new StringBuilder();
+        final StringBuilder s = new StringBuilder();
+
         for (int i = 0; i < choices.size(); ++i) {
-            List<ContextComponent> ctx = choices.get(i).getContext();
-            for (int j = 0; j < ctx.size(); ++j) {
-                s.append(ctx.get(j).toString());
-                if (j < ctx.size() - 1)
-                    s.append(".");
-            }
-            if (i < choices.size() - 1)
-                s.append(" + ");
+            final List<ContextComponent> ctx = choices.get(i).getContext();
+            for (int j = 0; j < ctx.size(); ++j)
+                s.append(ctx.get(j).toString()).append(j < ctx.size() - 1 ? "." : "");
+            s.append(i < choices.size() - 1 ? " + " : "");
         }
+
         return s.toString();
     }
 

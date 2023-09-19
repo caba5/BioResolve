@@ -12,8 +12,8 @@ import java.util.Set;
 public class RepeatedContextComponent extends ContextComponent {
     private final Context sequence;
     
-    public RepeatedContextComponent(int n, ContextComponent c) {
-        List<ContextComponent> sequence = new ArrayList<ContextComponent>(n);
+    public RepeatedContextComponent(final int n, final ContextComponent c) {
+        List<ContextComponent> sequence = new ArrayList<>(n);
         for (int i = 0; i < n; ++i)
             sequence.add(c);
         
@@ -26,11 +26,11 @@ public class RepeatedContextComponent extends ContextComponent {
 
     @Override
     public List<Entity> getEntitiesSequence() {
-        List<Entity> seq = new ArrayList<>();
+        final List<Entity> seq = new ArrayList<>();
         
-        List<ContextComponent> ctx = sequence.getContext();
-        for (ContextComponent comp : ctx) {
-            List<Entity> entitiesSeq = comp.getEntitiesSequence();
+        final List<ContextComponent> ctx = sequence.getContext();
+        for (final ContextComponent comp : ctx) {
+            final List<Entity> entitiesSeq = comp.getEntitiesSequence();
             seq.addAll(entitiesSeq);
         }
         
@@ -39,9 +39,9 @@ public class RepeatedContextComponent extends ContextComponent {
 
     @Override
     public Set<Entity> getEntitiesSet() {
-        Set<Entity> s = new HashSet<>();
+        final Set<Entity> s = new HashSet<>();
 
-        for (ContextComponent comp : sequence.getContext())
+        for (final ContextComponent comp : sequence.getContext())
             s.addAll(comp.getEntitiesSet());
 
         return s;
@@ -49,14 +49,11 @@ public class RepeatedContextComponent extends ContextComponent {
     
     @Override
     public String toString() {
-        StringBuilder s = new StringBuilder();
+        final StringBuilder s = new StringBuilder();
         
-        List<ContextComponent> ctx = sequence.getContext();
-        for (int i = 0; i < ctx.size(); ++i) {
-            s.append(ctx.get(i).toString());
-            if (i < ctx.size() - 1)
-                s.append(".");
-        }
+        final List<ContextComponent> ctx = sequence.getContext();
+        for (int i = 0; i < ctx.size(); ++i)
+            s.append(ctx.get(i)).append(i < ctx.size() - 1 ? "." : "");
         
         return s.toString();
     }
