@@ -17,6 +17,19 @@ public record NodePair(Set<Entity> from, String fromContext, Set<Entity> to, Str
     }
 
     @Override
+    public int hashCode() {
+        int result = 17;
+
+        result = result * 37 + from.hashCode();
+        result = result * 37 + to.hashCode();
+        result = result * 37 + arc.hashCode();
+        result = result * 37 + fromContext.hashCode();
+        result = result * 37 + toContext.hashCode();
+
+        return result;
+    }
+
+    @Override
     public String toString() {
         final StringBuilder s = new StringBuilder("{");
 
