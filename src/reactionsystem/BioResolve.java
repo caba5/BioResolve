@@ -6,7 +6,7 @@ package reactionsystem;
  */
 public class BioResolve {
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
 
     /**
      * @param args the command line arguments

@@ -9,7 +9,12 @@ import java.util.regex.Pattern;
 /**
  * @author caba
  */
-record Entity(String symbol) {
+public class Entity {
+    private final String symbol;
+
+    Entity(final String symbol) {
+        this.symbol = symbol;
+    }
 
     public static Set<Entity> createSetFromStringsArr(final String[] entities) {
         final Set<Entity> res = new HashSet<>();
@@ -71,4 +76,9 @@ record Entity(String symbol) {
 
         return result;
     }
+
+    public String symbol() {
+        return symbol;
+    }
+
 }

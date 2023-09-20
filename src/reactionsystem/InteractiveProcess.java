@@ -16,9 +16,6 @@ public class InteractiveProcess {
     
     private final List<Set<Entity>> resultSequence; // D set
     private int resultSequenceIndex; // Index i of D
-    
-    private final List<Set<Entity>> stateSequence; // W set
-    private int stateSequenceIndex; // Index i of W
 
     public boolean hasEnded;
 
@@ -47,8 +44,6 @@ public class InteractiveProcess {
         
         this.resultSequence = new ArrayList<>(contextSequence.getContext().size() + 1);
         this.resultSequence.add(new HashSet<>()); // D0 is empty
-        
-        this.stateSequence = new ArrayList<>();
 
         this.managerId = managerId;
         this.initiallySubstitutedFrom = "";
@@ -60,8 +55,6 @@ public class InteractiveProcess {
             final Environment env,
             final Context contextSequence,
             final int contextSequenceIndex,
-            final List<Set<Entity>> stateSequence,
-            final int stateSequenceIndex,
             final List<Set<Entity>> resultSequence,
             final int resultSequenceIndex,
             final String initiallySubstitutedFrom,
@@ -72,8 +65,6 @@ public class InteractiveProcess {
         this.environment = env;
         this.contextSequence = contextSequence;
         this.contextSequenceIndex = contextSequenceIndex;
-        this.stateSequence = stateSequence;
-        this.stateSequenceIndex = stateSequenceIndex;
         this.resultSequence = resultSequence;
         this.resultSequenceIndex = resultSequenceIndex;
         this.initiallySubstitutedFrom = initiallySubstitutedFrom;
@@ -82,9 +73,6 @@ public class InteractiveProcess {
     }
 
     public void pushResult(final Set<Entity> parallelResult) {
-        stateSequence.add(parallelResult); // This is Wi = Ci U Di
-        ++stateSequenceIndex;
-
         resultSequence.add(parallelResult); // This is Di+1 = Ci U Di
         ++resultSequenceIndex;
 
@@ -117,8 +105,6 @@ public class InteractiveProcess {
                         environment,
                         choices.get(i),
                         0,
-                        stateSequence,
-                        stateSequenceIndex,
                         new ArrayList<>(resultSequence),
                         resultSequenceIndex,
                         initiallySubstitutedFrom,
@@ -145,7 +131,7 @@ public class InteractiveProcess {
         } else if (contextI instanceof RepeatedContextComponent repeatedContextComponent) {
             final Context translatedContext = repeatedContextComponent.getRepeatedSequence();
             
-            contextSequence.getSubstitutedContext(stateSequenceIndex, translatedContext);
+            contextSequence.getSubstitutedContext(resultSequenceIndex, translatedContext);
             
             return advanceStateSequence();
         } else if (contextI instanceof EntitiesContextComponent entitiesContextComponent) {
@@ -175,8 +161,6 @@ public class InteractiveProcess {
                 environment,
                 contextSequence,
                 contextSequenceIndex,
-                stateSequence,
-                stateSequenceIndex,
                 new ArrayList<>(resultSequence),
                 resultSequenceIndex,
                 initiallySubstitutedFrom,
