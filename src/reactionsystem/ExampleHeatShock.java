@@ -1,5 +1,6 @@
 package reactionsystem;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Set;
 
@@ -91,6 +92,9 @@ public class ExampleHeatShock {
 
         coordinator.getLastManager().bindManagerToProcesses();
 
-        coordinator.compute();
+        Duration totalTime = coordinator.compute();
+
+        float t = (float) totalTime.toNanos() / 1000000000;
+        System.out.println("Total time " + t + "s");
     }
 }

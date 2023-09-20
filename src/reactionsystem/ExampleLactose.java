@@ -1,5 +1,6 @@
 package reactionsystem;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Set;
 
@@ -33,7 +34,6 @@ public class ExampleLactose {
 //        Reaction r8 = new Reaction(Entity.createEntitySet(eCrp), Entity.createEntitySet(eVoid), Entity.createEntitySet(eCAP));
 //        Reaction r9 = new Reaction(Entity.createEntitySet(eCAMP, eCAP), Entity.createEntitySet(eGlucose), Entity.createEntitySet(eCampCap));
 //        Reaction r10 = new Reaction(Entity.createEntitySet(eLac, eCampCap), Entity.createEntitySet(eIOP), Entity.createEntitySet(eZ, eY, eA));
-
         String reactionsString = "([lac],[void],[lac]), " +
                 "([lacI],[void],[lacI]), " +
                 "([lacI],[void],[i]), " +
@@ -68,6 +68,9 @@ public class ExampleLactose {
 
         coordinator.getLastManager().bindManagerToProcesses();
 
-        coordinator.compute();
+        Duration totalTime = coordinator.compute();
+
+        float t = (float) totalTime.toNanos() / 1000000000;
+        System.out.println("Total time " + t + "s");
     }
 }

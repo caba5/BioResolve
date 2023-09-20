@@ -3,6 +3,8 @@ package reactionsystem;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 
 public class ManagersCoordinator {
@@ -54,10 +56,11 @@ public class ManagersCoordinator {
         spawnManager(filteredProcesses);
     }
 
-    public void compute() {
+    public Duration compute() {
         final String sep = " ------------------------------------------- ";
         int i = 0;
 
+        Instant begin = Instant.now();
         while (i < managers.size()) {
             if (BioResolve.DEBUG) System.out.println(sep + "Running manager " + i + sep);
             managers.get(i).run();
@@ -65,9 +68,12 @@ public class ManagersCoordinator {
 
             ++i;
         }
+        Instant end = Instant.now();
         if (BioResolve.DEBUG) System.out.println("All managers finished their jobs.");
 
         generateDOTGraph();
+
+        return Duration.between(begin, end);
     }
 
     public void generateDOTGraph() {
@@ -125,6 +131,12 @@ public class ManagersCoordinator {
 
     public static void setRS(final ReactionSystem rs) {
         ManagersCoordinator.rs = rs;
+    }
+
+    public void resetCoordinator() {
+        managers.clear();
+        cachedManagers.clear();
+        managerId = 0;
     }
 
     public static ManagersCoordinator getInstance() throws IllegalStateException {
