@@ -1,4 +1,4 @@
-package reactionsystem;
+package bioresolve;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;

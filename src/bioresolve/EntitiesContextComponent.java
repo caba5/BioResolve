@@ -1,4 +1,4 @@
-package reactionsystem;
+package bioresolve;
 
 import java.util.HashSet;
 import java.util.List;

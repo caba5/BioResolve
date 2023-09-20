@@ -1,4 +1,4 @@
-package reactionsystem;
+package bioresolve;
 
 import java.time.Duration;
 import java.util.List;

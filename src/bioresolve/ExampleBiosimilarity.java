@@ -1,7 +1,6 @@
-package reactionsystem;
+package bioresolve;
 
 import java.time.Duration;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
