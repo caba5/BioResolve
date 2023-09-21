@@ -3,7 +3,7 @@ package bioresolve;
 import java.util.*;
 
 /**
- *
+ * Represents a reaction of the system.
  * @author caba
  */
 public class Reaction {
@@ -11,6 +11,12 @@ public class Reaction {
     private final Set<Entity> inhibitors;
     private final Set<Entity> products;
 
+    /**
+     * @param reactants The set of reactants.
+     * @param inhibitors The set of inhibitors.
+     * @param products The set of products.
+     * @throws IllegalArgumentException
+     */
     public Reaction(Set<Entity> reactants, Set<Entity> inhibitors, Set<Entity> products) throws IllegalArgumentException {
         if (reactants.isEmpty() || inhibitors.isEmpty() || products.isEmpty())
             throw new IllegalArgumentException("The provided arguments have to be non-empty sets of entities");
@@ -20,6 +26,11 @@ public class Reaction {
         this.products = products;
     }
 
+    /**
+     * Given a set, it computes the reaction applied to its entities.
+     * @param wSet The set on which to compute the reaction.
+     * @return The products of the reaction if all the reactants and no inhibitors are present, an empty result otherwise.
+     */
     public Set<Entity> computeResult(final Set<Entity> wSet) {
         for (final Entity reactant : reactants)
             if (!wSet.contains(reactant))
@@ -34,7 +45,12 @@ public class Reaction {
         return products;
     }
 
-    // This has to be called before both entity extrapolation and reactions parsing
+    /**
+     * Checks that the reaction string is correct.<br>
+     * This has to be called before both entity extrapolation and reactions parsing
+     * @param reactions The reactions string.
+     * @throws IllegalArgumentException If the reaction is wrongly specified.
+     */
     public static void checkReactionStringConformity(final String reactions) throws IllegalArgumentException {
         final String[] reacs = reactions.trim().split("(?!\\)\\s*),\\s*(?=\\()");
 
@@ -47,7 +63,12 @@ public class Reaction {
                 throw new IllegalArgumentException("The reaction " + reaction + " does not respect the form ([a,b], [c,d], [e,f]).");
     }
 
-    public static Set<Reaction> parseReactions(final String reactions) throws IllegalArgumentException {
+    /**
+     * Parses the string containing all the reactions, creating a reaction for each.
+     * @param reactions The reactions string.
+     * @return The set of reactions which have been created.
+     */
+    public static Set<Reaction> parseReactions(final String reactions) {
         final Set<Reaction> res = new HashSet<>();
 
         final String[] reacs = reactions.trim().split("(?!\\)\\s*),\\s*(?=\\()");
@@ -71,6 +92,9 @@ public class Reaction {
         return res;
     }
 
+    /**
+     * Prints the activated reaction.
+     */
     private void printReaction() {
         System.out.print("Activated reaction: [");
         int i = 0;

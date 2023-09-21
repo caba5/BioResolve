@@ -5,16 +5,26 @@ import java.util.List;
 import java.util.Map;
 
 /**
- *
+ * This class describes the environment of the whole system.<br>
+ * The environment is represented as a mapping between a string (the constant variable name specified in the environment)
+ * and the context associated to it.
  * @author caba
  */
 public class Environment {
     private final Map<String, Context> env;
-    
+
+    /**
+     * @param env The string specifying the environment.
+     */
     public Environment(final String env) {
         this.env = parseEnvironment(env);
     }
-    
+
+    /**
+     * Parses the environment string, creating a new context for each definition and mapping it to its variable.
+     * @param env The environment string.
+     * @return The mapping between variables and contexts.
+     */
     private Map<String, Context> parseEnvironment(final String env) {
         final Map<String, Context> e = new HashMap<>();
 
@@ -32,7 +42,13 @@ public class Environment {
         
         return e;
     }
-    
+
+    /**
+     * Parses a single assignment in the environment (e.g. x = {a,b}.{c}.nil).
+     * @param assignment The string representing the assignment.
+     * @param map The map to populate.
+     * @throws IllegalArgumentException
+     */
     private void parseEnvironmentSingle(final String assignment, final Map<String, Context> map) throws IllegalArgumentException {
         if (assignment.isBlank())
             return;

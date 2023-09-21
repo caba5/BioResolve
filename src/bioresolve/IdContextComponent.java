@@ -6,12 +6,16 @@ import java.util.List;
 import java.util.Set;
 
 /**
- *
+ * This class defines a context component representing a variable declared inside the environment which will eventually
+ * be substituted by its definition.
  * @author caba
  */
 public class IdContextComponent extends ContextComponent {
     private final String contextId;
-    
+
+    /**
+     * @param id The id of the variable.
+     */
     public IdContextComponent(final String id) {
         this.contextId = id;
     }

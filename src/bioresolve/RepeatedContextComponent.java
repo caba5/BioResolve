@@ -6,12 +6,16 @@ import java.util.List;
 import java.util.Set;
 
 /**
- *
+ * Represents a component which is repeated (i.e. <i><10, {a,b}></i>).
  * @author caba
  */
 public class RepeatedContextComponent extends ContextComponent {
     private final Context sequence;
-    
+
+    /**
+     * @param n The number of repetitions.
+     * @param c The context component to repeat.
+     */
     public RepeatedContextComponent(final int n, final ContextComponent c) {
         List<ContextComponent> sequence = new ArrayList<>(n);
         for (int i = 0; i < n; ++i)

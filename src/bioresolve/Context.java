@@ -4,16 +4,26 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- *
+ * This class represents a context of the program. The instances are created initially by parsing the context string,
+ * identifying possible parallel contexts (i.e. multiple instances of this class).<br>
+ * Each context stores a list of context components, which are identified during the initial parsing phase.
  * @author caba
  */
 public class Context {
     private final List<ContextComponent> context;
-    
+
+    /**
+     * @param context A list of context components, usually provided by the context parser.
+     */
     public Context(final List<ContextComponent> context) {
         this.context = context;
     }
 
+    /**
+     * Parses a string into multiple contexts if it represents a parallel composition.
+     * @param ctx The string representing the context.
+     * @return A new Context instance
+     */
     public static List<Context> parseParallel(final String ctx) {
         final List<Context> res = new ArrayList<>();
 
@@ -36,7 +46,12 @@ public class Context {
 
         return res;
     }
-    
+
+    /**
+     * Parses a string representing a single context, that is a single unit of a parallel composition (if present).
+     * @param ctx The string representing a parallel composition's unit.
+     * @return
+     */
     public static Context parseContext(final String ctx) {
         final List<ContextComponent> out;
         final String trimmedCtx = ctx.trim();
@@ -55,7 +70,15 @@ public class Context {
             
         return parseSingle(trimmedCtx);
     }
-    
+
+    /**
+     * Parses the components of the single context's string, creating a new context out of them. Used by the
+     * {@link #parseContext(String) parseContext(ctx)} to process the different parts of a possible choice context
+     * component.
+     * @param ctx The string representing the left or right part of a choice (i.e. <i>+</i>).
+     * @return A new context instance.
+     * @throws IllegalArgumentException
+     */
     private static Context parseSingle(final String ctx) throws IllegalArgumentException {
         final String[] unitComponents = ctx.split("\\Q.\\E");
 
@@ -101,7 +124,11 @@ public class Context {
     
     /**
      * This method is used to insert the context to which an IdContextComponent in a given position refers to OR
-     * to insert a repeated sequence translated by a RepeatedContextComponent
+     * to insert a repeated sequence translated by a RepeatedContextComponent.
+     * @param position The position of the context to substitute.
+     * @param ctx The context that will be inserted into the current's at the provided position.
+     * @return A new context instance containing the substitution.
+     * @throws IllegalArgumentException
     **/
     public Context getSubstitutedContext(final int position, final Context ctx) throws IllegalArgumentException {
         if (!(context.get(position) instanceof IdContextComponent) && 

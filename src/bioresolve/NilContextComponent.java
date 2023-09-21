@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- *
+ * Represents the <i>nil</i> component in a sequence.
  * @author caba
  */
 public class NilContextComponent extends ContextComponent {

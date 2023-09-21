@@ -6,7 +6,10 @@ import java.util.List;
 import java.util.Set;
 
 /**
- *
+ * This class is in charge of advancing the computation process.<br>
+ * It performs the substitution of variables, the assignment of choices (spawning other {@link ProcessManager managers)},
+ * and the computation of the current set, that is the union of the current component's context and the result of the
+ * previous computations performed by its manager.
  * @author caba
  */
 public class InteractiveProcess {
@@ -26,6 +29,12 @@ public class InteractiveProcess {
     private String stemsFrom;
     private final Context initialContext;
 
+    /**
+     * A utility function which instantiates as many instances of this class as the number of parallel contexts.
+     * @param env The environment common to each process.
+     * @param parallelContexts The list of parallel contexts.
+     * @return A list of process instances.
+     */
     public static List<InteractiveProcess> createParallelProcesses(final Environment env, final List<Context> parallelContexts) {
         List<InteractiveProcess> parallelProcesses = new ArrayList<>(parallelContexts.size());
 
@@ -36,7 +45,13 @@ public class InteractiveProcess {
 
         return parallelProcesses;
     }
-    
+
+    /**
+     * @param managerId The unique id of the manager responsible for the computation of the results for this process and
+     *                  its parallel counterparts.
+     * @param env The environment common to each process.
+     * @param contextSequence The context on which the process works on.
+     */
     public InteractiveProcess(final int managerId, final Environment env, final Context contextSequence) {
         this.environment = env;
         this.contextSequence = contextSequence;
@@ -49,7 +64,9 @@ public class InteractiveProcess {
         this.initiallySubstitutedFrom = "";
     }
 
-    // This constructor is used when creating a (quasi-deep) clone of a process
+    /**
+     * This constructor is used when creating a (quasi-deep) clone of a process.
+    */
     private InteractiveProcess(
             final int managerId,
             final Environment env,
@@ -72,6 +89,11 @@ public class InteractiveProcess {
         this.initialContext = initialContext;
     }
 
+    /**
+     * Pushes the merged results of the reaction computations of this process together with its parallel counterparts,
+     * if present.
+     * @param parallelResult
+     */
     public void pushResult(final Set<Entity> parallelResult) {
         resultSequence.add(parallelResult); // This is Di+1 = Ci U Di
         ++resultSequenceIndex;
@@ -82,7 +104,6 @@ public class InteractiveProcess {
     /**
      * Computes the process' next result, possibly substituting variables (if C<sub>i</sub> is an environment variable or
      * if it is a repeated context component) and creating new processes (if C<sub>i</sub> is a choice component).
-     *
      * @return The next result D<sub>i</sub>.
      */
     public Set<Entity> advanceStateSequence() {
@@ -152,6 +173,14 @@ public class InteractiveProcess {
         return wSet;
     }
 
+    /**
+     * Performs a (quasi-)deep copy of the class as it is before starting the computation of the current result of the
+     * sequence. This means that, in a situation in which a parallel composition of processes is present, if the instance
+     * on which this method gets called has already advanced its state before all the parallel ones have done the same,
+     * the copy will include its state preceding this advancement step.
+     * @param callerManagerId The unique id of the manager which will be responsible for the new clone.
+     * @return A new cloned process.
+     */
     public InteractiveProcess clone(final int callerManagerId) {
         // Decrement the context sequence's index if it is dirty (it has advanced)
         final int contextSequenceIndex = dirty ? this.contextSequenceIndex - 1 : this.contextSequenceIndex;
@@ -180,7 +209,9 @@ public class InteractiveProcess {
     public Integer getContextSequenceIndex() { return contextSequenceIndex; }
 
     /**
-        Returns the string of the last computed context.
+     * Returns the string of the last computed context.<br>
+     * Mainly used for debugging purposes.
+     * @return The string of the last computed context.
      */
     public String getLastContextAsString() {
         final ContextComponent contextI = contextSequence.getContext().get(contextSequenceIndex - 1);
@@ -193,10 +224,15 @@ public class InteractiveProcess {
         return "";
     }
 
+    /**
+     * Returns the list of entities belonging to the second-last component of the context.
+     * @return
+     */
     public List<Entity> getLastContext() {
         final ContextComponent contextI = contextSequence.getContext().get(Math.max(contextSequenceIndex - 1, 0));
 
-        if (contextI instanceof  EntitiesContextComponent entitiesContextComponent)
+        // The only component having entities inside is EntitiesContextComponent
+        if (contextI instanceof EntitiesContextComponent entitiesContextComponent)
             return entitiesContextComponent.getEntities();
 
         return new ArrayList<>();
@@ -206,6 +242,10 @@ public class InteractiveProcess {
         return initialContext;
     }
 
+    /**
+     * Computes the string representation of the context components which have not been considered yet.
+     * @return The string representation of the remaining components.
+     */
     public String getRemainingContextAsString() {
         final StringBuilder s = new StringBuilder();
 

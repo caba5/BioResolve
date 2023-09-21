@@ -5,12 +5,15 @@ import java.util.List;
 import java.util.Set;
 
 /**
- *
+ * The context component representing the chain of entities (e.g. {a, b, c}).
  * @author caba
  */
 public class EntitiesContextComponent extends ContextComponent {
     private final List<Entity> entities;
-    
+
+    /**
+     * @param entities The list of entities the component is made of.
+     */
     public EntitiesContextComponent(final List<Entity> entities) {
         this.entities = entities;
     }

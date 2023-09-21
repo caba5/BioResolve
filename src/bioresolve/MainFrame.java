@@ -33,9 +33,9 @@ public class MainFrame extends JFrame {
         textAreas = List.of(reactionsTextArea, environmentTextArea, contextTextArea);
 
         computeFinalResultButton.addActionListener(e -> {
-            String reactionsString = reactionsTextArea.getText();
-
             try {
+                String reactionsString = reactionsTextArea.getText();
+
                 Reaction.checkReactionStringConformity(reactionsString);
 
                 Set<Entity> S = Entity.extrapolateEntitiesFromReactionsString(reactionsString);

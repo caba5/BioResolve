@@ -7,15 +7,24 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
+ * This class represents a single entity of the system.
  * @author caba
  */
 public class Entity {
     private final String symbol;
 
+    /**
+     * @param symbol A string representing the entity.
+     */
     Entity(final String symbol) {
         this.symbol = symbol;
     }
 
+    /**
+     * Utility function used to create a set of entities from an array of strings.
+     * @param entities The array of strings, each representing an entity.
+     * @return A set of instances of this class.
+     */
     public static Set<Entity> createSetFromStringsArr(final String[] entities) {
         final Set<Entity> res = new HashSet<>();
 
@@ -25,6 +34,13 @@ public class Entity {
         return res;
     }
 
+    /**
+     * Utility function used to extract all the entities from a string representing a reaction.<br>
+     * This method allows to avoid specifying every single entity before running the program.
+     * @param reactions The string representing the reactions.
+     * @return A set of instances of this class.
+     * @throws IllegalArgumentException
+     */
     public static Set<Entity> extrapolateEntitiesFromReactionsString(final String reactions) throws IllegalArgumentException {
         final Set<Entity> res = new HashSet<>();
 
@@ -39,6 +55,12 @@ public class Entity {
         return res;
     }
 
+    /**
+     * Utility function used to create a string out of a collection of entities.<br>
+     * It is mainly used for debugging purposes.
+     * @param entityCollection A collection of entities.
+     * @return The string representing the collection of entities.
+     */
     public static String stringifyEntitiesCollection(final Collection<Entity> entityCollection) {
         final StringBuilder res = new StringBuilder();
 

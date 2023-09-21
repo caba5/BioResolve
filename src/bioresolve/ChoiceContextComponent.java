@@ -6,12 +6,15 @@ import java.util.List;
 import java.util.Set;
 
 /**
- *
+ * This class represents a context component being a choice between contexts (e.g. <i>{a,b}.nil + {c}.nil</i>).
  * @author caba
  */
 public class ChoiceContextComponent extends ContextComponent {
     private final List<Context> choices;
-    
+
+    /**
+     * @param choices A list of contexts to choose from.
+     */
     public ChoiceContextComponent(final List<Context> choices) {
         this.choices = choices;
     }

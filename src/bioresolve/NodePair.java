@@ -1,8 +1,16 @@
 package bioresolve;
 
-
 import java.util.Set;
 
+/**
+ * Represents a pair of nodes in the final graph. Besides being used for the creation of the DOT graph, a pair of nodes
+ * is also used for caching a computed state.
+ * @param from
+ * @param fromContext
+ * @param to
+ * @param toContext
+ * @param arc
+ */
 public record NodePair(Set<Entity> from, String fromContext, Set<Entity> to, String toContext, Set<Entity> arc) {
     @Override
     public boolean equals(Object o) {

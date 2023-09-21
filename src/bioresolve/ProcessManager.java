@@ -2,6 +2,9 @@ package bioresolve;
 
 import java.util.*;
 
+/**
+ * This class is in charge of executing a set processes parallel between them.
+ */
 public class ProcessManager {
     private final ReactionSystem rs;
     private final List<InteractiveProcess> parallelProcesses;
@@ -10,6 +13,14 @@ public class ProcessManager {
 
     private final int managerId;
 
+    /**
+     * @param managerId The unique id for this manager.
+     * @param rs The reaction system.
+     * @param parallelProcesses The list of parallel processes.
+     * @param check A flag for performing sanity checks on the environment and on the processes contexts. If set to false,
+     *              the checks are skipped.
+     * @throws IllegalArgumentException
+     */
     public ProcessManager(
             final int managerId,
             final ReactionSystem rs,
@@ -37,6 +48,12 @@ public class ProcessManager {
         this.processGraph = new ArrayList<>();
     }
 
+    /**
+     * Checks if all the entities of the provided context belong to the given reaction system.
+     * @param rs The reaction system.
+     * @param context The context.
+     * @throws IllegalArgumentException If at least one entity doesn't belong to the RS.
+     */
     private void checkEntitiesBelongToRS(final ReactionSystem rs, final Context context) throws IllegalArgumentException {
         final Set<Entity> entities = rs.getEntities();
 
@@ -50,10 +67,24 @@ public class ProcessManager {
         }
     }
 
+    /**
+     * Runs the iterative computation on the manager's processes. It stops either when all the processes have finished
+     * their execution, or when, in case of recursive processes, all of their results have already been computed.
+     */
     public void run() {
         while (compute()) {}
     }
 
+    /**
+     * Executes the iterative advancement of the context sequences of the parallel processes. For each round, the entities
+     * of each process (i.e., the union of their <i>C<sub>i</sub></i> and <i>D<sub>i-1</sub></i> sets) are united with those of the others.
+     * Then, this cumulative set is computed against the reaction system, in which the reactions have been defined.
+     * Finally, the resulting entities are pushed to each process, advancing its internal <i>D<sub>i</sub></i>.<br>
+     * As a side effect, a {@link NodePair pair of nodes} is generated from this computation and pushed to the global
+     * cache managed by the coordinator. This cache acts both as the mean to construct the DOT graph and as the computations
+     * cache, stopping if the state has already been reached.
+     * @return A boolean indicating whether to continue or not (that is, if the processes have not finished yet).
+     */
     private boolean compute() {
         final Set<Entity> mergedWSet = new HashSet<>();
 
@@ -120,6 +151,12 @@ public class ProcessManager {
         return true;
     }
 
+    /**
+     * Generates the string representing the performed computation. It is similar to the string of the generated node.
+     * Used mainly for debugging reasons.
+     * @param cumulativeResult Result of the computation.
+     * @return The string representation of the computation.
+     */
     private String getResultString(Set<Entity> cumulativeResult) {
         final StringBuilder res = new StringBuilder("(Ci = {");
 
@@ -159,6 +196,9 @@ public class ProcessManager {
         return res.toString();
     }
 
+    /**
+     * Sets this manager as the manager of the parallel processes.
+     */
     public void bindManagerToProcesses() {
         for (final InteractiveProcess p : parallelProcesses)
             p.setManagerId(managerId);
