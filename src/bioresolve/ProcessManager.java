@@ -105,7 +105,7 @@ public class ProcessManager {
 
         final Set<Entity> cumulativeResult = rs.computeResults(mergedWSet); // cumulativeResult = Wi
 
-        if (BioResolve.DEBUG) System.out.println(getResultString(cumulativeResult));
+        if (BioResolve.OUT) System.out.println(getResultString(cumulativeResult));
 
         final Set<Entity> from = new HashSet<>(); // Di
         final Set<Entity> arc = new HashSet<>(); // Ci U Di
@@ -142,7 +142,7 @@ public class ProcessManager {
         if (cumulativeResult.isEmpty()) return false;
 
         if (ManagersCoordinator.getInstance().getCachedManagers().contains(node)) {
-            if (BioResolve.DEBUG) System.out.println("[Warning] All results have already been computed. Stopping.");
+            if (BioResolve.OUT) System.out.println("[Warning] All results have already been computed. Stopping.");
             return false;
         }
 

@@ -7,8 +7,8 @@ package bioresolve;
  * @author caba
  */
 public class BioResolve {
-
     static final boolean DEBUG = false;
+    static boolean OUT = true;
 
     public static void main(String[] args) {
         MainFrame frame = new MainFrame();

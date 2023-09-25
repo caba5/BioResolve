@@ -138,7 +138,7 @@ public class Context {
 
         final List<ContextComponent> toSubstitute = ctx.getContext();
 
-        if (BioResolve.DEBUG) {
+        if (BioResolve.OUT) {
             System.out.print("[Info] Substituting " + context.get(position) + " with ");
             int i = 0;
             final int len = toSubstitute.size() - 1;

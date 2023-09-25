@@ -15,13 +15,14 @@ public class MainFrame extends JFrame {
     private JTextArea contextTextArea;
     private JButton computeFinalResultButton;
     private JLabel outLabel;
-
+    private JCheckBox showResultsCheckBox;
     private final List<JTextArea> textAreas;
 
     public MainFrame() {
         setContentPane(mainPanel);
         setTitle("BioResolve");
         setMinimumSize(new Dimension(900, 500));
+        setResizable(false);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setVisible(true);
 
@@ -34,6 +35,9 @@ public class MainFrame extends JFrame {
 
         computeFinalResultButton.addActionListener(e -> {
             try {
+                if (showResultsCheckBox.isSelected()) BioResolve.OUT = true; // Enable computation steps output
+                else BioResolve.OUT = false;
+
                 String reactionsString = reactionsTextArea.getText();
 
                 Reaction.checkReactionStringConformity(reactionsString);
@@ -74,11 +78,9 @@ public class MainFrame extends JFrame {
     }
 
     private void checkTextAreasFilled() {
-        for (final JTextArea t : textAreas) {
-            if (t.getText().isBlank()) {
-                computeFinalResultButton.setEnabled(false);
-                return;
-            }
+        if (contextTextArea.getText().isBlank() || reactionsTextArea.getText().isBlank()) {
+            computeFinalResultButton.setEnabled(false);
+            return;
         }
 
         computeFinalResultButton.setEnabled(true);

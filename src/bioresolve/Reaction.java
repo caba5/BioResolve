@@ -40,7 +40,7 @@ public class Reaction {
             if (wSet.contains(inhibitor))
                 return Collections.emptySet();
 
-        if (BioResolve.DEBUG) printReaction();
+        if (BioResolve.OUT) printReaction();
 
         return products;
     }
