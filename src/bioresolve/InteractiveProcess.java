@@ -225,7 +225,7 @@ public class InteractiveProcess {
     }
 
     /**
-     * Returns the list of entities belonging to the second-last component of the context.
+     * Returns the list of entities belonging to the second-last <b>seen</b> component of the context.
      * @return
      */
     public List<Entity> getLastContext() {

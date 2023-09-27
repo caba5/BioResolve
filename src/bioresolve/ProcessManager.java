@@ -103,7 +103,7 @@ public class ProcessManager {
         if (endedProcessesNumber == parallelProcesses.size()) // Return if all the processes have reached their last point
             return false;
 
-        final Set<Entity> cumulativeResult = rs.computeResults(mergedWSet); // cumulativeResult = Wi
+        final Set<Entity> cumulativeResult = rs.computeResults(mergedWSet); // cumulativeResult = Di+1
 
         if (BioResolve.OUT) System.out.println(getResultString(cumulativeResult));
 
