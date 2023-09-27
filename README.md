@@ -16,7 +16,7 @@ Companion [slides](BioResolve.pdf) are included for a faster look at the program
 # Structure
 
 The project contains five main classes, four of which are examples based on those provided by 
-[](https://pages.di.unipi.it/bruni/LTSRS/).
+[https://pages.di.unipi.it/bruni/LTSRS/](https://pages.di.unipi.it/bruni/LTSRS/).
 
 Examples show a typical flow of executing the program programmatically, which is the original way of using the program.
 
@@ -50,4 +50,4 @@ dot -Tsvg result.dot > result.svg
 # References
 
 *[1] Linda Brodo, Roberto Bruni, Moreno Falaschi. A logical and graphical framework for reaction systems, Theoretical 
-Computer Science 875 (2021) 1–27, [](https://doi.org/10.1016/j.tcs.2021.03.024)*.
+Computer Science 875 (2021) 1–27, [https://doi.org/10.1016/j.tcs.2021.03.024](https://doi.org/10.1016/j.tcs.2021.03.024)*.
